@@ -24,11 +24,25 @@ namespace Larje.Core.UI
         [SerializeField] private string prefix;
         [SerializeField] private string suffix = "<sprite index=0>";
 
+        private bool _subscribed;
         private TMP_Text _text;
         private TweenScope _punch;
         private ICurrencyService _currency;
 
         public CurrencyId Currency => currency;
+
+        private TMP_Text Text
+        {
+            get
+            {
+                if (_text == null)
+                {
+                    _text = GetComponent<TMP_Text>();
+                }
+
+                return _text;
+            }
+        }
 
 #if LARJE_ZENJECT
         [Zenject.Inject]
@@ -36,10 +50,7 @@ namespace Larje.Core.UI
         public void Construct(ICurrencyService currencyService)
         {
             _currency = currencyService;
-            if (isActiveAndEnabled)
-            {
-                Subscribe();
-            }
+            Subscribe();
         }
 
         public int GetCurrentAmount()
@@ -66,7 +77,7 @@ namespace Larje.Core.UI
         public void SetDisplayed(int amount)
         {
             string formatted = shortFormat ? CurrencyFormatter.Format(amount) : amount.ToString();
-            _text.text = prefix + formatted + suffix;
+            Text.text = prefix + formatted + suffix;
         }
 
         public void PlayPunch()
@@ -75,34 +86,30 @@ namespace Larje.Core.UI
             PunchAsync(_punch.Restart()).SuppressCancellationThrow().Forget();
         }
 
-        private void Awake()
-        {
-            _text = GetComponent<TMP_Text>();
-        }
-
         private void OnEnable()
         {
-            if (_currency != null)
-            {
-                Subscribe();
-            }
+            Subscribe();
         }
 
         private void OnDisable()
         {
-            if (_currency != null)
+            if (_subscribed)
             {
                 _currency.Added -= OnAdded;
                 _currency.Spent -= OnSpent;
                 _currency.Changed -= Refresh;
+                _subscribed = false;
             }
         }
 
         private void Subscribe()
         {
-            _currency.Added -= OnAdded;
-            _currency.Spent -= OnSpent;
-            _currency.Changed -= Refresh;
+            if (_subscribed || _currency == null || !isActiveAndEnabled)
+            {
+                return;
+            }
+
+            _subscribed = true;
             _currency.Added += OnAdded;
             _currency.Spent += OnSpent;
             if (updateOnAdd && updateOnSpend)

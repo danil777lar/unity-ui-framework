@@ -8,6 +8,7 @@ namespace Larje.Core.UI
     {
         [SerializeField] private Mode mode = Mode.Height;
 
+        private bool _measured;
         private float _defaultOffset;
         private RectTransform _rect;
         private IAdsService _ads;
@@ -23,12 +24,6 @@ namespace Larje.Core.UI
             Apply();
         }
 
-        private void Awake()
-        {
-            _rect = (RectTransform)transform;
-            _defaultOffset = _rect.offsetMin.y;
-        }
-
         private void OnDestroy()
         {
             if (_ads != null)
@@ -40,6 +35,13 @@ namespace Larje.Core.UI
 
         private void Apply()
         {
+            if (!_measured)
+            {
+                _rect = (RectTransform)transform;
+                _defaultOffset = _rect.offsetMin.y;
+                _measured = true;
+            }
+
             float height = _ads.BannerShowing ? _ads.BannerHeight : 0f;
             if (mode == Mode.Height)
             {
