@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Larje.Core.UI
 {
     [CreateAssetMenu(fileName = "UIConfig", menuName = "Larje/Core/UI/UI Config")]
-    public sealed class UIConfig : ScriptableObject
+    public sealed class UIConfig : ScriptableObject, IConfigValidatable
     {
         [Header("General")]
         [SerializeField] private bool useDeviceBackButton = true;
@@ -48,6 +48,47 @@ namespace Larje.Core.UI
         public UIToast FindToast(UIToastId id)
         {
             return toasts.Find(x => x != null && x.Id == id);
+        }
+
+        public void Validate(List<string> problems)
+        {
+            HashSet<UIScreenId> screenIds = new HashSet<UIScreenId>();
+            foreach (UIScreen screen in screens)
+            {
+                if (screen == null)
+                {
+                    problems.Add("Screens list contains an empty entry");
+                }
+                else if (screen.Id == null)
+                {
+                    problems.Add($"Screen prefab '{screen.name}' has no UIScreenId");
+                }
+                else if (!screenIds.Add(screen.Id))
+                {
+                    problems.Add($"Screen id '{screen.Id.name}' is used by several prefabs");
+                }
+            }
+
+            foreach (UIPopup popup in popups)
+            {
+                if (popup == null || popup.Id == null)
+                {
+                    problems.Add("Popup entry is empty or has no UIPopupId");
+                }
+            }
+
+            foreach (UIToast toast in toasts)
+            {
+                if (toast == null || toast.Id == null)
+                {
+                    problems.Add("Toast entry is empty or has no UIToastId");
+                }
+            }
+
+            if (startScreen != null && FindScreen(startScreen) == null)
+            {
+                problems.Add($"Start screen '{startScreen.name}' is not in the screens list");
+            }
         }
     }
 }
