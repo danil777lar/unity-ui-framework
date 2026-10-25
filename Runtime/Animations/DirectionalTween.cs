@@ -1,7 +1,7 @@
 using System;
 using Larje.Core.Tweening;
 
-namespace Larje.Core.UI.Animations
+namespace Larje.UI.Animations
 {
     [Serializable]
     public sealed class DirectionalTween

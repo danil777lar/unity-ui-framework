@@ -4,7 +4,7 @@ using Larje.Core.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     [RequireComponent(typeof(Slider))]
     public sealed class SliderBlink : MonoBehaviour

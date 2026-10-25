@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Larje.Core;
 using UnityEngine;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public sealed class UIPopupProcessor : UIProcessor
     {

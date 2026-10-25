@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public sealed class VirtualScreen : GraphicRaycaster
     {

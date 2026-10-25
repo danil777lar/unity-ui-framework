@@ -1,0 +1,19 @@
+{
+    "name": "Larje.UI.Editor",
+    "rootNamespace": "Larje.UI.Editor",
+    "references": [
+        "Larje.UI",
+        "Larje.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

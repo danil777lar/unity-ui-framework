@@ -5,7 +5,7 @@ using Larje.Core.Tweening;
 using TMPro;
 using UnityEngine;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public sealed class CurrencyFlyAnimation : MonoBehaviour
     {

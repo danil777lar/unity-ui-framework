@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Larje.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public abstract class UIProcessor
     {

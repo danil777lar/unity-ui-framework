@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     [RequireComponent(typeof(CanvasScaler))]
     public sealed class CanvasMatchByAspect : MonoBehaviour

@@ -1,10 +1,10 @@
-using Larje.Core.UI;
 using System;
 using System.Collections.Generic;
+using Larje.UI;
 using UnityEditor;
 using UnityEngine;
 
-namespace Larje.Core.Editor.UI
+namespace Larje.UI.Editor
 {
     [CustomEditor(typeof(PDWPanel))]
     public sealed class PDWPanelEditor : UnityEditor.Editor

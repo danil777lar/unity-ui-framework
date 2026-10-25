@@ -1,7 +1,7 @@
 using System.Text;
-using Larje.Core.UI;
+using Larje.Core.Debugging;
 
-namespace Larje.Core.Debugging
+namespace Larje.UI.Debugging
 {
     public sealed class UIDebugCommands : IDebugCommandProvider
     {

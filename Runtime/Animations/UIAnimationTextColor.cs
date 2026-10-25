@@ -2,7 +2,7 @@ using Larje.Core.Tweening;
 using TMPro;
 using UnityEngine;
 
-namespace Larje.Core.UI.Animations
+namespace Larje.UI.Animations
 {
     [RequireComponent(typeof(TMP_Text))]
     public sealed class UIAnimationTextColor : UIAnimationBase

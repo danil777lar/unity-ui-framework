@@ -1,7 +1,7 @@
 using Larje.Core.Tweening;
 using UnityEngine;
 
-namespace Larje.Core.UI.Animations
+namespace Larje.UI.Animations
 {
     [RequireComponent(typeof(CanvasGroup))]
     public sealed class UIAnimationCanvasGroup : UIAnimationBase

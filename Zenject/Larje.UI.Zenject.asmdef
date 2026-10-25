@@ -1,0 +1,28 @@
+{
+    "name": "Larje.UI.Zenject",
+    "rootNamespace": "Larje.UI.Zenject",
+    "references": [
+        "Larje.UI",
+        "Larje.Core",
+        "Larje.Core.Zenject",
+        "UniTask",
+        "Zenject"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "LARJE_ZENJECT"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.larje.zenject",
+            "expression": "9.0.0",
+            "define": "LARJE_ZENJECT"
+        }
+    ],
+    "noEngineReferences": false
+}

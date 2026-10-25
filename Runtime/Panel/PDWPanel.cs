@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class PDWPanel : MaskableGraphic

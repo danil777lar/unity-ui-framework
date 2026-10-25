@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public interface IUIService
     {

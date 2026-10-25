@@ -1,4 +1,4 @@
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public class UIObjectArgs
     {

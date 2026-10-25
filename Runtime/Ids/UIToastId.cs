@@ -1,9 +1,9 @@
 using Larje.Core.Ids;
 using UnityEngine;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
-    [CreateAssetMenu(fileName = "UIToast", menuName = "Larje/Core/Ids/UI Toast")]
+    [CreateAssetMenu(fileName = "UIToast", menuName = "Larje/UI/Ids/UI Toast")]
     public sealed class UIToastId : LarjeId
     {
     }

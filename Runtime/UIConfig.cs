@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Larje.Core;
 using UnityEngine;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
-    [CreateAssetMenu(fileName = "UIConfig", menuName = "Larje/Core/UI/UI Config")]
+    [CreateAssetMenu(fileName = "UIConfig", menuName = "Larje/UI/UI Config")]
     public sealed class UIConfig : ScriptableObject, IConfigValidatable
     {
         [Header("General")]

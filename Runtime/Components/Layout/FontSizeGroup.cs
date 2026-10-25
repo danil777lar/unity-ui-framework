@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     [RequireComponent(typeof(TMP_Text))]
     public sealed class FontSizeGroup : MonoBehaviour

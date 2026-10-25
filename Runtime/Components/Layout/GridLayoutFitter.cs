@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     [RequireComponent(typeof(GridLayoutGroup))]
     public sealed class GridLayoutFitter : MonoBehaviour

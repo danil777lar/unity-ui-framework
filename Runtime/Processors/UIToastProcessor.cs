@@ -1,7 +1,8 @@
 using System;
+using Larje.Core;
 using UnityEngine;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public sealed class UIToastProcessor : UIProcessor
     {

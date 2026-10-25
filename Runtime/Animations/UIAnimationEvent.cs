@@ -1,4 +1,4 @@
-namespace Larje.Core.UI.Animations
+namespace Larje.UI.Animations
 {
     public enum UIAnimationEvent
     {

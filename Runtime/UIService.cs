@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Larje.Core;
 using Larje.Core.Input;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Object = UnityEngine.Object;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public sealed class UIService : IUIService, IInitializableService, IDisposable
     {

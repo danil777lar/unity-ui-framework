@@ -1,7 +1,8 @@
+using Larje.Core.Input;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public class UIPopup : UIObject
     {

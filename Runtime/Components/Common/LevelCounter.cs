@@ -3,7 +3,7 @@ using Larje.Core.Localization;
 using TMPro;
 using UnityEngine;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     [RequireComponent(typeof(TMP_Text))]
     public sealed class LevelCounter : MonoBehaviour

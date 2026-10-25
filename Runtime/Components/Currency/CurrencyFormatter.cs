@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public static class CurrencyFormatter
     {

@@ -1,7 +1,7 @@
 using Larje.Core.Haptics;
 using UnityEngine;
 
-namespace Larje.Core.UI.Animations
+namespace Larje.UI.Animations
 {
     public sealed class UIAnimationHaptic : UIAnimationBase
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     public sealed class UIToastArgs : UIObjectArgs
     {

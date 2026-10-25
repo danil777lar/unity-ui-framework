@@ -1,7 +1,7 @@
 using Larje.Core.Monetization;
 using UnityEngine;
 
-namespace Larje.Core.UI
+namespace Larje.UI
 {
     [RequireComponent(typeof(RectTransform))]
     public sealed class BannerSpace : MonoBehaviour
