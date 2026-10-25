@@ -1,15 +1,30 @@
-using UnityEngine;
-
 namespace Larje.UI
 {
-    public class UIScreen : UIObject
+    public abstract class UIScreen : UIObject
     {
-        [Header("Screen")]
-        [SerializeField] private UIScreenId id;
-        [SerializeField] private bool clearHistoryOnOpen;
+        public UIScreenId ScreenId => Id as UIScreenId;
+        public virtual bool ClearHistoryOnOpen => false;
+    }
 
-        public UIScreenId Id => id;
-        public bool ClearHistoryOnOpen => clearHistoryOnOpen;
-        public override string IdName => id != null ? id.name : name;
+    public abstract class UIScreen<TView> : UIScreen where TView : UIView, new()
+    {
+        private TView _view;
+
+        protected TView View => _view;
+
+        protected override void OnCreated()
+        {
+            _view = new TView();
+            _view.Bind(Root, States);
+            OnViewReady();
+        }
+
+        protected virtual void OnViewReady()
+        {
+        }
+    }
+
+    public sealed class DefaultScreen : UIScreen
+    {
     }
 }

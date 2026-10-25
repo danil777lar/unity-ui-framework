@@ -1,12 +1,10 @@
 # Larje UI
 
-`com.larje.ui`: UI framework for Unity 6 on any platform (mobile, desktop, WebGL). Screens, popups and toasts identified by ScriptableObject ids, a UI service with processors for layering, focus and back navigation, tween-based UI animations, and ready components (currency counters and fly-to-counter, rewarded ad button, banner space, back button, layout helpers). Debug console commands and an optional Zenject installer are included.
+`com.larje.ui`: UI framework on **UI Toolkit** for Unity 6 on any platform (mobile, desktop, WebGL). Screens, popups and toasts are UXML/USS documents exported from HTML/CSS design mockups; behaviour lives in plain C# controllers with constructor injection; animations are presets declared in the markup; layout parity with the mockups is tested automatically.
 
-Built on [`com.larje.core`](https://github.com/danil777lar/unity-gameplay-core-services) (tweens, input, audio, haptics, economy, monetization, debug console) and UniTask.
+Built on [`com.larje.core`](https://github.com/danil777lar/unity-gameplay-core-services) (tweens, input, economy) and UniTask.
 
 ## Install
-
-Add to `Packages/manifest.json` (UPM does not resolve git dependencies, so list core and UniTask too):
 
 ```json
 "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.10",
@@ -14,49 +12,80 @@ Add to `Packages/manifest.json` (UPM does not resolve git dependencies, so list 
 "com.larje.ui": "https://github.com/danil777lar/unity-ui-framework.git"
 ```
 
-Projects created with `com.larje.projectsetup` get it automatically.
+Projects created with `com.larje.projectsetup` get it configured: `PanelSettings` + theme, `UIConfig`, `LarjeUIInstaller` in `ProjectContext`.
 
-## Setup
+## Pipeline
 
-1. Create a `UIConfig` (`Create > Larje > UI > UI Config`) and list screen, popup and toast prefabs in it. Set the start screen if one should open on boot.
-2. With Zenject: create `LarjeUIInstaller` (`Create > Larje > UI > Zenject > UI Installer`), assign the config, and add it to `ProjectContext` after `LarjeCoreInstaller`. Without Zenject: call `container.BindLarjeUI(config)` from your installer, or construct `UIService` yourself.
+1. Design: mockups in the design folder (`unity-game-designer` skill): HTML pages built from the portable kit (`kit.css`), tokens from `style.json`.
+2. `design.py ui-export <design> <project>` writes `Assets/_Project/UI` (UXML per screen/popup/toast, `tokens.uss`, `kit.uss`, `game.uss`, `assets.uss`, page USS, fonts, art), generated views `Assets/_Project/Scripts/UI/Views/<Name>View.cs` + `UIKeys.cs`, and `UIMockups/` test data, then runs `Larje.UI.Editor.UIViewSync` (creates ids, fills `UIConfig`).
+3. Controllers add behaviour; `UIMockupTests` (PlayMode) compares every exported view and state with the mockup layout and writes side-by-side images to `Logs/UIParity`.
 
-## Concepts
+Never edit exported UXML/USS/views by hand: change the mockup and export again.
+
+## Runtime
 
 | Type | Purpose |
 |---|---|
-| `UIScreenId`, `UIPopupId`, `UIToastId` | ScriptableObject ids (`Create > Larje > UI > Ids`) |
-| `UIScreen`, `UIPopup`, `UIToast` | Root components of prefabs (each root has a `Canvas`); lifecycle Open / Close / Show / Hide / Focus / Unfocus with before/after events |
-| `IUIService` | `OpenScreen(id, args)`, `OpenPopup(id, combination, args)`, `ShowToast(id, text, keepOpen)`, `Back()`, `GetOpened()`, focus tracking |
-| Processors | `UIScreenProcessor`, `UIPopupProcessor`, `UIToastProcessor` order layers by priority, keep history and handle back; add custom ones with `AddProcessor` |
-| `UIObjectArgs` | Data passed to an object on open (`OnBeforeOpen(args)`) |
+| `UIConfig` | `PanelSettings`, view entries (id → `VisualTreeAsset`) for screens, popups, toasts, start screen, motion speed, toast duration, sync folders |
+| `IUIService` | `OpenScreen`, `OpenPopup` (`Close` / `Overlay` / `Hide` combination), `ShowToast(text, keepOpen)`, `Close`, `Back`, focus, `Opened`/`Closed` events, `Root` and `OverlayLayer` |
+| `UIScreen<TView>`, `UIPopup<TView>`, `UIToast<TView>` | Controllers: override `OnViewReady`, `OnOpen(args)`, `OnOpened`, `OnClose`, `OnFocus`, `OnBack`; `View` is the generated typed view, `States` toggles mockup states, `Lifetime` is cancelled on close |
+| `UIView` | Base of generated views: `Find<T>("Path/To/Name")` |
+| `UIStates` | Mockup states (`state-show--x`, `state-hide--x`, `state-class--x--cls` classes): `Set("no_ads", true)` |
+| `UIMotion`, `UIMotionPreset` | Presets from `anim--*` classes: appear (`fade-in`, `popup-in`, `pop-in`, `toast-in`, `slide-up/down/left/right-in`, reversed on close), `press`, `hover-grow`, idle (`idle-pulse`, `idle-wiggle`, `idle-float`, `idle-spin`) |
+| `UIFlyEffect` | Coins/items flying from one element to another with a burst, curve, stagger and target punch |
+| `UICurrencyLabel` | Label bound to a currency with count-up animation |
+| `UISafeArea` | `.safe` elements get max(device safe area, design insets) |
+| `UIKit` | Prepares instantiated layouts (stretch, strips default theme classes from `Button`/`Label` so the kit styles win) |
+| `IUIControllerFactory` | Key → controller (`UIControllerRegistry` without Zenject, `ZenjectUIControllerFactory` with it) |
 
-## Animations
+Popups close on `Backdrop` click and `CloseButton`; toasts close on tap or after the duration (`keepOpen` keeps them).
 
-Add `UIAnimation*` components (`Scale`, `Position`, `Rotation`, `CanvasGroup`, `TextColor`, `TextBold`, `Sound`, `Haptic`) to any child of a UI object. Each one plays on the events selected in its list:
+## Zenject
 
-- root lifecycle: `RootOpen`, `RootClose`, `RootShow`, `RootHide`, `RootFocus`, `RootUnfocus`. The root waits for the longest open or close animation before finishing.
-- pointer and selectable events through `UIEventsRoot` on interactive elements: press, release, hover, click, select, interactable on/off, drag, enable/disable.
+```csharp
+Container.BindUIController<MainMenuScreen>(UIKeys.MainMenu);
+Container.BindUIController<ShopPopup>(UIKeys.ShopPopup);
+```
 
-Tweens come from `Larje.Core.Tweening` (UniTask, cancellation on disable/destroy).
+`LarjeUIInstaller` (in `ProjectContext` after `LarjeCoreInstaller`) calls `BindLarjeUI(config)`.
 
-## Components
+```csharp
+public sealed class ShopPopup : UIPopup<ShopPopupView>
+{
+    private readonly IAdsService _ads;
 
-- Currency: `CurrencyCounter`, `CurrencyFlyAnimation`, `CurrencyFormatter`.
-- Ads: `RewardedAdButton`, `BannerSpace`.
-- Common: `UIBackButton`, `LevelCounter`, `ScreenBlocker`, `FirstSelected`, `SliderBlink`, `SpriteAnimation`.
-- Layout: `CanvasMatchByAspect`, `FontSizeGroup`, `GridLayoutFitter`.
-- `PDWPanel` with its inspector, `VirtualScreen` for UI rendered on world-space surfaces.
+    public ShopPopup(IAdsService ads)
+    {
+        _ads = ads;
+    }
 
-Components receive services through `Construct` methods (`[Inject]` under `LARJE_ZENJECT`).
+    protected override void OnViewReady()
+    {
+        View.WatchAdButton.clicked += OnWatchAd;
+        States.Set("no_ads", _ads.NoAds);
+    }
+
+    private void OnWatchAd()
+    {
+        _ads.ShowRewardedAsync("shop_coins", Lifetime).Forget();
+    }
+}
+```
+
+## Testing (`Larje.UI.Testing`, editor only)
+
+- `UIMockupSuite`: runs all exported mockups and states from `UIMockups/manifest.json`; `UIMockupHarness` renders UXML into a texture at the reference resolution, compares element rects with the mockup layout (tolerance from the manifest) and saves `Logs/UIParity/<name>.png` and `<name>--compare.png` (mockup | Unity).
+- `UIInteraction`: find and click UI Toolkit buttons by name or text.
+- `UIPanelCapture`: renders all UI panels into a texture (used by `PlaytestSession.CaptureAsync`).
 
 ## Debug commands
 
-`UIDebugCommands` (category UI): open screen, open popup, show toast, press back, list opened objects.
+Category UI: open screen / popup / toast (by id or key), press back, list opened.
 
 ## Layout
 
 - `Runtime/`: `Larje.UI`.
-- `Zenject/`: `Larje.UI.Zenject` (`LarjeUIInstaller`, `BindLarjeUI`), compiled with `LARJE_ZENJECT`.
-- `Editor/`: `Larje.UI.Editor`.
-- `Tests/Zenject/`: EditMode tests.
+- `Zenject/`: `Larje.UI.Zenject` (`LARJE_ZENJECT`).
+- `Editor/`: `Larje.UI.Editor` (`UIViewSync`, menu `Tools/Larje/UI/Sync Views`).
+- `Testing/`: `Larje.UI.Testing` (`UNITY_EDITOR`).
+- `Tests/`: EditMode tests.

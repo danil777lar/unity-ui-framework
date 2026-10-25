@@ -1,73 +1,77 @@
 using System;
-using System.Threading;
-using Cysharp.Threading.Tasks;
-using TMPro;
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 namespace Larje.UI
 {
-    public class UIToast : UIObject, IPointerDownHandler
+    public abstract class UIToast : UIObject
     {
-        [Header("Toast")]
-        [SerializeField] private UIToastId id;
-        [SerializeField] private float closeDelay = 2f;
-        [SerializeField] private int maxWidth = 800;
+        public const string MESSAGE_NAME = "Message";
 
-        [Header("Links")]
-        [SerializeField] private TMP_Text text;
-        [SerializeField] private ContentSizeFitter sizeFitter;
+        private Func<bool> _keepOpen;
 
-        public UIToastId Id => id;
-        public override string IdName => id != null ? id.name : name;
+        public UIToastId ToastId => Id as UIToastId;
+        public Func<bool> KeepOpen => _keepOpen;
+        public virtual float Duration => -1f;
+        public virtual bool CloseOnTap => true;
 
-        public void OnPointerDown(PointerEventData eventData)
+        protected override void OnCreated()
         {
-            Close();
+            Root.RegisterCallback<PointerDownEvent>(OnPointerDown);
+            OnToastCreated();
         }
 
-        protected override void OnBeforeOpen(UIObjectArgs args)
+        protected override void OnOpen(UIObjectArgs args)
         {
             UIToastArgs toastArgs = args as UIToastArgs;
-            if (toastArgs != null && text != null)
+            if (toastArgs != null)
             {
-                text.text = toastArgs.Text;
+                _keepOpen = toastArgs.KeepOpen;
+                Label message = Root.Q<Label>(MESSAGE_NAME);
+                if (message != null && toastArgs.Text != null)
+                {
+                    message.text = toastArgs.Text;
+                }
             }
 
-            RunAsync(toastArgs != null ? toastArgs.KeepOpen : null, this.GetCancellationTokenOnDestroy()).Forget();
+            OnToastOpen(args);
         }
 
-        private async UniTaskVoid RunAsync(Func<bool> keepOpen, CancellationToken cancellationToken)
+        protected virtual void OnToastCreated()
         {
-            await UniTask.DelayFrame(2, PlayerLoopTiming.Update, cancellationToken);
-            ClampWidth();
-
-            if (keepOpen == null)
-            {
-                await UniTask.Delay(TimeSpan.FromSeconds(closeDelay), DelayType.UnscaledDeltaTime, PlayerLoopTiming.Update, cancellationToken);
-            }
-            else
-            {
-                await UniTask.WaitWhile(keepOpen, PlayerLoopTiming.Update, cancellationToken);
-            }
-
-            Close();
         }
 
-        private void ClampWidth()
+        protected virtual void OnToastOpen(UIObjectArgs args)
         {
-            if (text == null || sizeFitter == null)
-            {
-                return;
-            }
+        }
 
-            RectTransform rect = (RectTransform)text.transform;
-            if (rect.sizeDelta.x > maxWidth)
+        private void OnPointerDown(PointerDownEvent evt)
+        {
+            if (CloseOnTap)
             {
-                sizeFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-                rect.sizeDelta = new Vector2(maxWidth, rect.sizeDelta.y);
+                Close();
             }
         }
+    }
+
+    public abstract class UIToast<TView> : UIToast where TView : UIView, new()
+    {
+        private TView _view;
+
+        protected TView View => _view;
+
+        protected override void OnToastCreated()
+        {
+            _view = new TView();
+            _view.Bind(Root, States);
+            OnViewReady();
+        }
+
+        protected virtual void OnViewReady()
+        {
+        }
+    }
+
+    public sealed class DefaultToast : UIToast
+    {
     }
 }

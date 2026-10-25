@@ -1,95 +1,135 @@
+using System;
 using System.Collections.Generic;
 using Larje.Core;
+using Larje.Core.Ids;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Larje.UI
 {
     [CreateAssetMenu(fileName = "UIConfig", menuName = "Larje/UI/UI Config")]
     public sealed class UIConfig : ScriptableObject, IConfigValidatable
     {
-        [Header("General")]
-        [SerializeField] private bool useDeviceBackButton = true;
-        [SerializeField] private int maxSortingOrder = 1000;
+        [Header("Panel")]
+        [SerializeField] private PanelSettings panelSettings;
         [SerializeField] private bool persistAcrossScenes = true;
+        [SerializeField] private bool useDeviceBackButton = true;
 
-        [Header("Screens")]
+        [Header("Views")]
         [SerializeField] private UIScreenId startScreen;
-        [SerializeField] private int screensPriority;
-        [SerializeField] private List<UIScreen> screens = new List<UIScreen>();
+        [SerializeField] private List<UIViewEntry<UIScreenId>> screens = new List<UIViewEntry<UIScreenId>>();
+        [SerializeField] private List<UIViewEntry<UIPopupId>> popups = new List<UIViewEntry<UIPopupId>>();
+        [SerializeField] private List<UIViewEntry<UIToastId>> toasts = new List<UIViewEntry<UIToastId>>();
 
-        [Header("Popups")]
-        [SerializeField] private int popupsPriority = 10;
-        [SerializeField] private List<UIPopup> popups = new List<UIPopup>();
+        [Header("Motion")]
+        [SerializeField] private float motionSpeed = 1f;
+        [SerializeField] private float toastDuration = 2f;
 
-        [Header("Toasts")]
-        [SerializeField] private int toastsPriority = 20;
-        [SerializeField] private List<UIToast> toasts = new List<UIToast>();
+        [Header("Sync")]
+        [SerializeField] private string viewsFolder = "Assets/_Project/UI";
+        [SerializeField] private string idsFolder = "Assets/_Project/Configs/Ids";
 
-        public bool UseDeviceBackButton => useDeviceBackButton;
-        public int MaxSortingOrder => maxSortingOrder;
+        public PanelSettings PanelSettings => panelSettings;
         public bool PersistAcrossScenes => persistAcrossScenes;
+        public bool UseDeviceBackButton => useDeviceBackButton;
         public UIScreenId StartScreen => startScreen;
-        public int ScreensPriority => screensPriority;
-        public IReadOnlyList<UIScreen> Screens => screens;
-        public int PopupsPriority => popupsPriority;
-        public IReadOnlyList<UIPopup> Popups => popups;
-        public int ToastsPriority => toastsPriority;
-        public IReadOnlyList<UIToast> Toasts => toasts;
+        public IReadOnlyList<UIViewEntry<UIScreenId>> Screens => screens;
+        public IReadOnlyList<UIViewEntry<UIPopupId>> Popups => popups;
+        public IReadOnlyList<UIViewEntry<UIToastId>> Toasts => toasts;
+        public float MotionSpeed => motionSpeed;
+        public float ToastDuration => toastDuration;
+        public string ViewsFolder => viewsFolder;
+        public string IdsFolder => idsFolder;
 
-        public UIScreen FindScreen(UIScreenId id)
+        public VisualTreeAsset FindLayout(LarjeId id)
         {
-            return screens.Find(x => x != null && x.Id == id);
+            return Find(screens, id) ?? Find(popups, id) ?? Find(toasts, id);
         }
 
-        public UIPopup FindPopup(UIPopupId id)
+        public T FindId<T>(string key) where T : LarjeId
         {
-            return popups.Find(x => x != null && x.Id == id);
-        }
+            foreach (UIViewEntry<UIScreenId> entry in screens)
+            {
+                if (entry.Id is T typed && typed.Key == key)
+                {
+                    return typed;
+                }
+            }
 
-        public UIToast FindToast(UIToastId id)
-        {
-            return toasts.Find(x => x != null && x.Id == id);
+            foreach (UIViewEntry<UIPopupId> entry in popups)
+            {
+                if (entry.Id is T typed && typed.Key == key)
+                {
+                    return typed;
+                }
+            }
+
+            foreach (UIViewEntry<UIToastId> entry in toasts)
+            {
+                if (entry.Id is T typed && typed.Key == key)
+                {
+                    return typed;
+                }
+            }
+
+            return null;
         }
 
         public void Validate(List<string> problems)
         {
-            HashSet<UIScreenId> screenIds = new HashSet<UIScreenId>();
-            foreach (UIScreen screen in screens)
+            if (panelSettings == null)
             {
-                if (screen == null)
+                problems.Add("PanelSettings is not assigned");
+            }
+
+            Check(screens, "screen", problems);
+            Check(popups, "popup", problems);
+            Check(toasts, "toast", problems);
+        }
+
+        private VisualTreeAsset Find<T>(List<UIViewEntry<T>> entries, LarjeId id) where T : LarjeId
+        {
+            foreach (UIViewEntry<T> entry in entries)
+            {
+                if (entry.Id == id)
                 {
-                    problems.Add("Screens list contains an empty entry");
-                }
-                else if (screen.Id == null)
-                {
-                    problems.Add($"Screen prefab '{screen.name}' has no UIScreenId");
-                }
-                else if (!screenIds.Add(screen.Id))
-                {
-                    problems.Add($"Screen id '{screen.Id.name}' is used by several prefabs");
+                    return entry.Layout;
                 }
             }
 
-            foreach (UIPopup popup in popups)
+            return null;
+        }
+
+        private void Check<T>(List<UIViewEntry<T>> entries, string kind, List<string> problems) where T : LarjeId
+        {
+            HashSet<T> seen = new HashSet<T>();
+            foreach (UIViewEntry<T> entry in entries)
             {
-                if (popup == null || popup.Id == null)
+                if (entry.Id == null || entry.Layout == null)
                 {
-                    problems.Add("Popup entry is empty or has no UIPopupId");
+                    problems.Add($"{kind} entry without id or layout");
+                }
+                else if (!seen.Add(entry.Id))
+                {
+                    problems.Add($"{kind} {entry.Id.Key} is listed twice");
                 }
             }
+        }
+    }
 
-            foreach (UIToast toast in toasts)
-            {
-                if (toast == null || toast.Id == null)
-                {
-                    problems.Add("Toast entry is empty or has no UIToastId");
-                }
-            }
+    [Serializable]
+    public sealed class UIViewEntry<T> where T : LarjeId
+    {
+        [SerializeField] private T id;
+        [SerializeField] private VisualTreeAsset layout;
 
-            if (startScreen != null && FindScreen(startScreen) == null)
-            {
-                problems.Add($"Start screen '{startScreen.name}' is not in the screens list");
-            }
+        public T Id => id;
+        public VisualTreeAsset Layout => layout;
+
+        public UIViewEntry(T id, VisualTreeAsset layout)
+        {
+            this.id = id;
+            this.layout = layout;
         }
     }
 }

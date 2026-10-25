@@ -1,7 +1,3 @@
-using System.IO;
-using System.Reflection;
-using Larje.Core.Economy;
-using Larje.Core.Saves;
 using Larje.Core.Zenject;
 using NUnit.Framework;
 using UnityEngine;
@@ -11,29 +7,20 @@ namespace Larje.UI.Zenject.Tests
 {
     public sealed class UIBindingTests
     {
-        private string _root;
         private DiContainer _container;
         private UIConfig _config;
 
         [SetUp]
         public void SetUp()
         {
-            _root = Path.Combine(Path.GetTempPath(), "larje_ui_tests_" + System.Guid.NewGuid().ToString("N"));
             _config = ScriptableObject.CreateInstance<UIConfig>();
             _container = new DiContainer();
             _container.BindLarjeInfrastructure();
-            _container.BindLarjeSaves(ScriptableObject.CreateInstance<SaveConfig>(), new FileSaveStorage(_root));
-            _container.BindLarjeEconomy(ScriptableObject.CreateInstance<CurrencyConfig>(), null);
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (Directory.Exists(_root))
-            {
-                Directory.Delete(_root, true);
-            }
-
             Object.DestroyImmediate(_config);
         }
 
@@ -43,33 +30,23 @@ namespace Larje.UI.Zenject.Tests
             _container.BindLarjeUI(_config);
 
             Assert.IsTrue(_container.HasBinding<IUIService>());
+            Assert.IsTrue(_container.HasBinding<IUIControllerFactory>());
             Assert.AreSame(_config, _container.Resolve<UIConfig>());
         }
 
         [Test]
-        public void ComponentsReceiveDependenciesThroughConstruct()
+        public void FactoryCreatesBoundControllers()
         {
-            _container.Resolve<LarjeInitializer>().Initialize();
-            GameObject target = new GameObject("Counter", typeof(RectTransform));
-            target.AddComponent<TMPro.TextMeshProUGUI>();
-            CurrencyCounter counter = target.AddComponent<CurrencyCounter>();
-            try
-            {
-                _container.InjectGameObject(target);
-                _container.Resolve<ICurrencyService>().Set(counter.Currency, 0);
-                Assert.AreEqual(0, counter.GetCurrentAmount());
-                Assert.IsTrue(InjectedField(counter));
-            }
-            finally
-            {
-                Object.DestroyImmediate(target);
-            }
+            _container.BindLarjeUI(_config);
+            _container.BindUIController<TestScreen>("Test");
+            IUIControllerFactory factory = _container.Resolve<IUIControllerFactory>();
+
+            Assert.IsInstanceOf<TestScreen>(factory.Create("Test"));
+            Assert.IsNull(factory.Create("Missing"));
         }
 
-        private bool InjectedField(CurrencyCounter counter)
+        public sealed class TestScreen : UIScreen
         {
-            FieldInfo field = typeof(CurrencyCounter).GetField("_currency", BindingFlags.Instance | BindingFlags.NonPublic);
-            return field.GetValue(counter) != null;
         }
     }
 }

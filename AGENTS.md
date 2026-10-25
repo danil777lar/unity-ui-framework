@@ -4,12 +4,22 @@ Instructions for coding agents working on this package.
 
 ## Package layout
 
-- `Runtime/`: `Larje.UI` (namespace `Larje.UI`): `Core/` (UI objects), `Ids/`, `Processors/`, `Animations/`, `Components/`, `Panel/`, `Tools/`, `Debugging/`, `UIService`, `UIConfig`.
-- `Zenject/`: `Larje.UI.Zenject` with `LarjeUIInstaller` and `BindLarjeUI`.
-- `Editor/`: `Larje.UI.Editor`.
-- `Tests/Zenject/`: EditMode tests.
-- This package depends on `com.larje.core` (`~/UnityPackages/unity-gameplay-core-services`). Core must never reference UI; shared non-UI tools (for example `RectTransformEvents` in `Larje.Core.Input`) stay in core.
-- The UI targets every platform: do not assume touch, portrait or mobile-only APIs; use the Input System and Canvas scaling.
+- `Runtime/` (`Larje.UI`, namespace `Larje.UI`): `Core/` (UIObject, UIScreen/UIPopup/UIToast and generic `<TView>` variants), `Views/` (UIView, UIStates, UIQuery), `Motion/` (presets and player), `Effects/`, `Bindings/`, `Layout/` (UIKit, UISafeArea), `Factory/`, `Debugging/`, `UIService`, `UIConfig`.
+- `Zenject/`: `Larje.UI.Zenject` (`LarjeUIInstaller`, `BindLarjeUI`, `BindUIController<T>(key)`).
+- `Editor/`: `Larje.UI.Editor` (`UIViewSync`).
+- `Testing/`: `Larje.UI.Testing` for project tests (mockup parity harness, UI Toolkit clicks, panel capture). Compiled only in the editor.
+- `Tests/`: EditMode tests.
+- This package depends on `com.larje.core` (`~/UnityPackages/unity-gameplay-core-services`). Core must never reference UI.
+- The UI targets every platform: no touch-only or portrait-only assumptions.
+
+## Contract with the mockup exporter
+
+`design.py ui-export` (skill `unity-game-designer`, `scripts/uitk.py`) generates what this package consumes. Keep both sides in sync when changing:
+
+- element names = `data-unity`; generated views find elements by name path (`UIQuery.Path`);
+- classes `anim--<preset>` (presets in `UIMotionPreset`, names mirrored in `uitk.ANIM_PRESETS`), `state-show--`, `state-hide--`, `state-class--<state>--<class>` (`UIStates`), `asset--<id>`;
+- popups: `Backdrop`, `CloseButton`; toasts: `Message`; `.safe` for safe area;
+- `UIMockups/manifest.json` and `layout/*.json` format (`MockupLayout`).
 
 ## Code style (C#)
 

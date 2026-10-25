@@ -4,10 +4,7 @@
     "references": [
         "Larje.Core",
         "UniTask",
-        "Unity.InputSystem",
-        "Unity.TextMeshPro",
-        "UnityEngine.UI",
-        "Zenject"
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -16,12 +13,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.larje.zenject",
-            "expression": "9.0.0",
-            "define": "LARJE_ZENJECT"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

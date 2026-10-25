@@ -1,0 +1,20 @@
+{
+    "name": "Larje.UI.Testing",
+    "rootNamespace": "Larje.UI.Testing",
+    "references": [
+        "Larje.UI",
+        "Larje.Core",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_EDITOR"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

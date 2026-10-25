@@ -1,38 +1,76 @@
-using Larje.Core.Input;
-using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
 
 namespace Larje.UI
 {
-    public class UIPopup : UIObject
+    public abstract class UIPopup : UIObject
     {
-        [Header("Popup")]
-        [SerializeField] private UIPopupId id;
-        [SerializeField] private bool closeByBackgroundClick;
-        [SerializeField] private RectTransformEvents background;
+        public const string BACKDROP_NAME = "Backdrop";
+        public const string CLOSE_BUTTON_NAME = "CloseButton";
 
-        public UIPopupId Id => id;
-        public override string IdName => id != null ? id.name : name;
+        public UIPopupId PopupId => Id as UIPopupId;
+        public virtual bool CloseOnBackdrop => true;
+        public virtual bool CloseOnBack => true;
 
-        protected override void OnBeforeOpen(UIObjectArgs args)
+        protected override void OnCreated()
         {
-            if (closeByBackgroundClick && background != null)
+            VisualElement backdrop = Root.Q(BACKDROP_NAME);
+            if (backdrop != null)
             {
-                background.PointerClick += OnBackgroundClick;
+                backdrop.RegisterCallback<ClickEvent>(OnBackdropClick);
+            }
+
+            Button closeButton = Root.Q<Button>(CLOSE_BUTTON_NAME);
+            if (closeButton != null)
+            {
+                closeButton.clicked += Close;
+            }
+
+            OnPopupCreated();
+        }
+
+        protected override bool OnBack()
+        {
+            if (CloseOnBack)
+            {
+                Close();
+                return true;
+            }
+
+            return false;
+        }
+
+        protected virtual void OnPopupCreated()
+        {
+        }
+
+        private void OnBackdropClick(ClickEvent evt)
+        {
+            if (CloseOnBackdrop && evt.target == evt.currentTarget)
+            {
+                Close();
             }
         }
+    }
 
-        protected override void OnBeforeClose()
+    public abstract class UIPopup<TView> : UIPopup where TView : UIView, new()
+    {
+        private TView _view;
+
+        protected TView View => _view;
+
+        protected override void OnPopupCreated()
         {
-            if (background != null)
-            {
-                background.PointerClick -= OnBackgroundClick;
-            }
+            _view = new TView();
+            _view.Bind(Root, States);
+            OnViewReady();
         }
 
-        private void OnBackgroundClick(PointerEventData eventData)
+        protected virtual void OnViewReady()
         {
-            Close();
         }
+    }
+
+    public sealed class DefaultPopup : UIPopup
+    {
     }
 }
